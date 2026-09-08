@@ -6,7 +6,7 @@
 session_start();
 
 // ── DB Connection ────────────────────────────────────────────
-$conn = new mysqli('localhost', 'root', '', 'quizcraft');
+$conn = new mysqli('sql311.infinityfree.com', 'if0_42862273', 'RK03karle', 'if0_42862273_quizz_management_db');
 if ($conn->connect_error) {
     die('<div style="font-family:sans-serif;padding:40px;color:red;">
         <h2>Database Connection Failed</h2>
