@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizCraft – Create Quiz</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#333;}
+
+    .navbar{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;
+      position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    .nav-brand{font-size:20px;font-weight:700;letter-spacing:1px;}
+    .nav-brand small{font-size:11px;font-weight:400;opacity:.8;display:block;}
+    .nav-links a{color:rgba(255,255,255,.85);text-decoration:none;padding:6px 14px;
+      border-radius:6px;font-size:14px;font-weight:500;margin:0 2px;}
+    .nav-links a:hover,.nav-links a.active{background:rgba(255,255,255,.2);color:#fff;}
+    .btn-nav{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);
+      color:#fff;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;
+      font-weight:600;text-decoration:none;}
+
+    .page{max-width:900px;margin:28px auto;padding:0 20px;}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px;}
+    .page-sub{color:#888;font-size:13px;margin-bottom:20px;}
+
+    /* STEPS */
+    .steps{display:flex;gap:0;margin-bottom:28px;}
+    .step{flex:1;text-align:center;padding:12px;border:1.5px solid #dde1e7;
+      background:#fff;font-size:13px;font-weight:600;color:#888;position:relative;}
+    .step.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:transparent;}
+    .step.done{background:#f0fdf4;color:#166534;border-color:#86efac;}
+    .step:first-child{border-radius:8px 0 0 8px;}
+    .step:last-child {border-radius:0 8px 8px 0;}
+    .step-num{display:inline-block;width:22px;height:22px;border-radius:50%;
+      background:rgba(255,255,255,.3);line-height:22px;font-size:12px;margin-right:6px;}
+    .step.active .step-num{background:rgba(255,255,255,.35);}
+    .step.done .step-num{background:#86efac;color:#166534;}
+
+    /* CARD */
+    .card{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);
+      padding:24px 28px;margin-bottom:22px;}
+    .card-title{font-size:15px;font-weight:700;color:#444;padding-bottom:14px;
+      border-bottom:2px solid #f0f2f5;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+    .card-title-icon{width:26px;height:26px;border-radius:6px;
+      background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+
+    /* FORM */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .form-grid.cols1{grid-template-columns:1fr;}
+    .fg{display:flex;flex-direction:column;gap:5px;}
+    .fg.span2{grid-column:span 2;}
+    .fg label{font-size:13px;font-weight:600;color:#555;}
+    .req{color:red;}
+    .fg input,.fg select,.fg textarea{
+      padding:9px 13px;border:1.5px solid #dde1e7;border-radius:8px;
+      font-size:14px;font-family:inherit;background:#fafbfc;outline:none;transition:.2s;}
+    .fg input:focus,.fg select:focus,.fg textarea:focus{
+      border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.12);background:#fff;}
+    .fg textarea{resize:vertical;min-height:70px;}
+    .err{color:red;font-size:11px;margin-top:3px;min-height:14px;}
+
+    /* DIVIDER */
+    .divider{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;
+      letter-spacing:1px;margin:20px 0 14px;display:flex;align-items:center;gap:10px;}
+    .divider::after{content:'';flex:1;height:1px;background:#e8eaed;}
+
+    /* BUTTONS */
+    .btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;
+      font-weight:600;font-family:inherit;transition:all .18s;display:inline-flex;
+      align-items:center;gap:6px;text-decoration:none;}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;}
+    .btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      box-shadow:0 2px 8px rgba(102,126,234,.3);}
+    .btn-primary:hover:not(:disabled){opacity:.9;transform:translateY(-1px);}
+    .btn-secondary{background:#f0f2f5;color:#555;border:1.5px solid #dde1e7;}
+    .btn-secondary:hover:not(:disabled){background:#e4e7ed;}
+    .btn-success{background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;
+      box-shadow:0 2px 8px rgba(17,153,142,.25);}
+    .btn-success:hover:not(:disabled){opacity:.9;transform:translateY(-1px);}
+    .btn-warning{background:#fff7ed;color:#c2410c;border:1.5px solid #fed7aa;padding:6px 13px;font-size:12px;}
+    .btn-danger {background:#fff0f0;color:#dc2626;border:1.5px solid #fca5a5;padding:6px 13px;font-size:12px;}
+    .btn-warning:hover{background:#ffeedd;} .btn-danger:hover{background:#fee2e2;}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;padding-top:16px;
+      border-top:1px solid #f0f2f5;}
+
+    /* TABLE */
+    .tbl-wrap{overflow-x:auto;}
+    table.data{width:100%;border-collapse:collapse;font-size:13px;}
+    table.data thead tr{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+    table.data thead th{padding:11px 13px;text-align:left;font-size:12px;font-weight:600;}
+    table.data thead th:first-child{border-radius:8px 0 0 0;}
+    table.data thead th:last-child{border-radius:0 8px 0 0;}
+    table.data tbody tr{border-bottom:1px solid #f0f2f5;}
+    table.data tbody tr:hover{background:#f7f8fc;}
+    table.data tbody td{padding:11px 13px;vertical-align:middle;}
+    .q-num{width:30px;height:30px;border-radius:50%;background:#ede9fe;color:#7c3aed;
+      display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;}
+    .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+    .badge-mcq{background:#ede9fe;color:#7c3aed;} .badge-tf{background:#dcfce7;color:#166534;}
+    .marks-chip{background:#fff7ed;color:#c2410c;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:700;}
+    .btn-gap{display:flex;gap:6px;}
+
+    /* MSG */
+    .msg-success{background:#f0fdf4;border:1.5px solid #86efac;color:#166534;
+      padding:12px 18px;border-radius:8px;margin-bottom:18px;font-weight:600;}
+    .msg-error{background:#fff0f0;border:1.5px solid #fca5a5;color:#991b1b;
+      padding:12px 18px;border-radius:8px;margin-bottom:18px;font-weight:600;}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:30px;color:#aaa;font-size:13px;}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">&#9998; QuizCraft <small>Online Quiz Platform</small></div>
+  <div class="nav-links">
+    <a href="index.html">&#127968; Dashboard</a>
+    <a href="create-quiz.html" class="active">&#128221; Create Quiz</a>
+    <a href="take-quiz.html">&#9654; Take Quiz</a>
+  </div>
+  <a href="index.html" class="btn-nav">&#8592; Dashboard</a>
+</nav>
+
+<div class="page">
+  <div class="page-title" id="pageTitle">&#128221; Create New Quiz</div>
+  <div class="page-sub">Step 1: Fill quiz details &rarr; Step 2: Add questions &rarr; Step 3: Save</div>
+
+  <!-- STEPS BAR -->
+  <div class="steps">
+    <div class="step active" id="stp1"><span class="step-num">1</span>Quiz Details</div>
+    <div class="step"        id="stp2"><span class="step-num">2</span>Add Questions</div>
+    <div class="step"        id="stp3"><span class="step-num">3</span>Save &amp; Finish</div>
+  </div>
+
+  <!-- GLOBAL MSG -->
+  <div id="gMsg" style="display:none;"></div>
+
+  <!-- ============================================================
+       STEP 1 : QUIZ DETAILS
+  ============================================================ -->
+  <div class="card" id="step1Card">
+    <div class="card-title"><div class="card-title-icon">1</div> Quiz Details</div>
+    <div class="form-grid">
+      <div class="fg">
+        <label>Quiz Title <span class="req">*</span></label>
+        <input type="text" id="quizTitle" placeholder="e.g. General Knowledge Quiz" oninput="vDetails()">
+        <div class="err" id="errTitle"></div>
+      </div>
+      <div class="fg">
+        <label>Subject / Category <span class="req">*</span></label>
+        <input type="text" id="quizSubject" placeholder="e.g. Science, History, Math" oninput="vDetails()">
+        <div class="err" id="errSubject"></div>
+      </div>
+      <div class="fg">
+        <label>Duration (minutes)</label>
+        <input type="number" id="quizDuration" placeholder="e.g. 30" min="1">
+      </div>
+      <div class="fg">
+        <label>Difficulty Level</label>
+        <select id="quizDiff">
+          <option value="">-- Select --</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+      <div class="fg span2">
+        <label>Description</label>
+        <textarea id="quizDesc" placeholder="Short description about this quiz..."></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnNext1" onclick="goToStep2()" disabled>
+        Next: Add Questions &#8594;
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       STEP 2 : ADD QUESTIONS
+  ============================================================ -->
+  <div id="step2Section" style="display:none;">
+
+    <!-- ADD / EDIT QUESTION FORM -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon">2</div>
+        <span id="qFormTitle">Add Question</span>
+        <span id="qCountLabel" style="margin-left:auto;font-size:13px;font-weight:500;color:#888;"></span>
+      </div>
+
+      <input type="hidden" id="editQIdx" value="-1">
+
+      <div class="form-grid">
+        <div class="fg span2">
+          <label>Question Text <span class="req">*</span></label>
+          <textarea id="qText" placeholder="Type your question here..." oninput="vQForm()"></textarea>
+          <div class="err" id="errQText"></div>
+        </div>
+        <div class="fg">
+          <label>Question Type <span class="req">*</span></label>
+          <select id="qType" onchange="onTypeChange();vQForm();">
+            <option value="">-- Select Type --</option>
+            <option value="MCQ">MCQ (Multiple Choice)</option>
+            <option value="TF">True / False</option>
+          </select>
+          <div class="err" id="errQType"></div>
+        </div>
+        <div class="fg">
+          <label>Marks <span class="req">*</span></label>
+          <input type="number" id="qMarks" placeholder="e.g. 5" min="1" oninput="vQForm()">
+          <div class="err" id="errQMarks"></div>
+        </div>
+      </div>
+
+      <!-- MCQ OPTIONS -->
+      <div id="mcqBlock">
+        <div class="divider">Answer Options</div>
+        <div class="form-grid">
+          <div class="fg">
+            <label>Option A <span class="req">*</span></label>
+            <input type="text" id="optA" placeholder="Option A" oninput="vQForm()">
+            <div class="err" id="errOptA"></div>
+          </div>
+          <div class="fg">
+            <label>Option B <span class="req">*</span></label>
+            <input type="text" id="optB" placeholder="Option B" oninput="vQForm()">
+            <div class="err" id="errOptB"></div>
+          </div>
+          <div class="fg">
+            <label>Option C <span class="req">*</span></label>
+            <input type="text" id="optC" placeholder="Option C" oninput="vQForm()">
+            <div class="err" id="errOptC"></div>
+          </div>
+          <div class="fg">
+            <label>Option D <span class="req">*</span></label>
+            <input type="text" id="optD" placeholder="Option D" oninput="vQForm()">
+            <div class="err" id="errOptD"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider">Correct Answer</div>
+      <div class="form-grid cols1">
+        <div class="fg">
+          <label>Select Correct Answer <span class="req">*</span></label>
+          <select id="qCorrect" onchange="vQForm()">
+            <option value="">-- Select Correct Answer --</option>
+          </select>
+          <div class="err" id="errQCorrect"></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnAddQ" onclick="addOrUpdateQ()" disabled>
+          &#43; Add Question
+        </button>
+        <button class="btn btn-secondary" id="btnCancelQ" style="display:none;" onclick="cancelEditQ()">
+          &#10005; Cancel Edit
+        </button>
+        <button class="btn btn-secondary" onclick="clearQForm()">&#8635; Clear</button>
+      </div>
+    </div>
+
+    <!-- QUESTION LIST TABLE -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon">&#9776;</div>
+        Question List
+        <span id="totalBadge" style="margin-left:auto;font-size:13px;font-weight:500;color:#888;"></span>
+      </div>
+
+      <div class="empty" id="noQMsg">No questions added yet. Use the form above to add questions.</div>
+
+      <div class="tbl-wrap" id="qTableWrap" style="display:none;">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>#</th><th>Question</th><th>Type</th><th>Marks</th>
+              <th>Options</th><th>Correct Answer</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="qTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- SAVE QUIZ BUTTON -->
+      <div class="btn-row">
+        <button class="btn btn-success" id="btnSaveQuiz" onclick="saveQuiz()" disabled>
+          &#128190; Save Quiz to Dashboard
+        </button>
+        <a href="index.html" class="btn btn-secondary">&#10005; Cancel</a>
+      </div>
+    </div>
+
+  </div><!-- end step2Section -->
+
+  <!-- SCHEDULE SHORTCUT (shown after save) -->
+  <div class="card" id="schedCard" style="display:none;">
+    <div class="card-title"><div class="card-title-icon">&#128197;</div> Quiz Saved!</div>
+    <p style="margin-bottom:16px;color:#555;">Your quiz has been saved to the dashboard.
+    Would you like to schedule it now?</p>
+    <div style="display:flex;gap:12px;">
+      <button class="btn btn-primary" onclick="goSchedule()">&#128197; Schedule This Quiz</button>
+      <a href="index.html" class="btn btn-secondary">Go to Dashboard</a>
+    </div>
+  </div>
+
+</div><!-- end page -->
+
+<script>
+  var questions = [];
+  var editMode  = false;
+  var editIndex = -1;
+
+  /* ---- INIT ---- */
+  function init(){
+    var raw=localStorage.getItem('qc_edit_index');
+    if(raw!==null&&raw!==''){
+      editIndex=parseInt(raw); localStorage.removeItem('qc_edit_index');
+      var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+      if(quizzes[editIndex]){
+        editMode=true;
+        var q=quizzes[editIndex];
+        document.getElementById('pageTitle').textContent='&#9998; Edit Quiz';
+        document.getElementById('quizTitle').value   = q.title;
+        document.getElementById('quizSubject').value = q.subject;
+        document.getElementById('quizDuration').value= q.duration||'';
+        document.getElementById('quizDiff').value    = q.difficulty||'';
+        document.getElementById('quizDesc').value    = q.description||'';
+        questions=JSON.parse(JSON.stringify(q.questions));
+        // Go directly to step 2
+        vDetails(); goToStep2(true);
+      }
+    }
+    vDetails();
+  }
+
+  /* ---- STEP INDICATOR ---- */
+  function setStep(n){
+    for(var i=1;i<=3;i++){
+      var el=document.getElementById('stp'+i);
+      el.className='step'+(i===n?' active':i<n?' done':'');
+    }
+  }
+
+  /* ---- STEP 1 VALIDATION ---- */
+  function vDetails(){
+    var t=document.getElementById('quizTitle').value.trim();
+    var s=document.getElementById('quizSubject').value.trim();
+    var ok=true;
+    if(!t){document.getElementById('errTitle').textContent='Quiz title is required.';ok=false;}
+    else  {document.getElementById('errTitle').textContent='';}
+    if(!s){document.getElementById('errSubject').textContent='Subject is required.';ok=false;}
+    else  {document.getElementById('errSubject').textContent='';}
+    document.getElementById('btnNext1').disabled=!ok;
+    return ok;
+  }
+
+  function goToStep2(skipValidate){
+    if(!skipValidate&&!vDetails()) return;
+    document.getElementById('step1Card').style.display='none';
+    document.getElementById('step2Section').style.display='block';
+    setStep(2);
+    renderTable();
+    updateSaveBtn();
+  }
+
+  /* ---- TYPE CHANGE ---- */
+  function onTypeChange(){
+    var t=document.getElementById('qType').value;
+    var cs=document.getElementById('qCorrect');
+    document.getElementById('mcqBlock').style.display=(t==='MCQ')?'block':'none';
+    if(t==='MCQ'){
+      cs.innerHTML='<option value="">-- Select Correct Answer --</option>'+
+        '<option value="A">Option A</option><option value="B">Option B</option>'+
+        '<option value="C">Option C</option><option value="D">Option D</option>';
+    } else if(t==='TF'){
+      ['optA','optB','optC','optD'].forEach(function(id){document.getElementById(id).value='';});
+      ['errOptA','errOptB','errOptC','errOptD'].forEach(function(id){document.getElementById(id).textContent='';});
+      cs.innerHTML='<option value="">-- Select Correct Answer --</option>'+
+        '<option value="True">True</option><option value="False">False</option>';
+    } else {
+      cs.innerHTML='<option value="">-- Select Correct Answer --</option>';
+    }
+  }
+
+  /* ---- QUESTION FORM VALIDATION ---- */
+  function vQForm(){
+    var text =document.getElementById('qText').value.trim();
+    var type =document.getElementById('qType').value;
+    var marks=document.getElementById('qMarks').value.trim();
+    var optA =document.getElementById('optA').value.trim();
+    var optB =document.getElementById('optB').value.trim();
+    var optC =document.getElementById('optC').value.trim();
+    var optD =document.getElementById('optD').value.trim();
+    var corr =document.getElementById('qCorrect').value;
+    var ok=true;
+
+    if(!text){document.getElementById('errQText').textContent='Question text is required.';ok=false;}
+    else      {document.getElementById('errQText').textContent='';}
+
+    if(!type){document.getElementById('errQType').textContent='Please select a type.';ok=false;}
+    else      {document.getElementById('errQType').textContent='';}
+
+    if(marks===''||isNaN(marks)||parseInt(marks)<1||marks.indexOf('.')!==-1){
+      document.getElementById('errQMarks').textContent='Must be a positive whole number.';ok=false;}
+    else{document.getElementById('errQMarks').textContent='';}
+
+    if(type==='MCQ'){
+      if(!optA){document.getElementById('errOptA').textContent='Required.';ok=false;}else{document.getElementById('errOptA').textContent='';}
+      if(!optB){document.getElementById('errOptB').textContent='Required.';ok=false;}else{document.getElementById('errOptB').textContent='';}
+      if(!optC){document.getElementById('errOptC').textContent='Required.';ok=false;}else{document.getElementById('errOptC').textContent='';}
+      if(!optD){document.getElementById('errOptD').textContent='Required.';ok=false;}else{document.getElementById('errOptD').textContent='';}
+    }
+
+    if(!corr){document.getElementById('errQCorrect').textContent='Please select correct answer.';ok=false;}
+    else if(type==='MCQ'){
+      var m={A:optA,B:optB,C:optC,D:optD};
+      if(!m[corr]){document.getElementById('errQCorrect').textContent='That option is empty.';ok=false;}
+      else{document.getElementById('errQCorrect').textContent='';}
+    } else {document.getElementById('errQCorrect').textContent='';}
+
+    document.getElementById('btnAddQ').disabled=!ok;
+    return ok;
+  }
+
+  /* ---- ADD / UPDATE QUESTION ---- */
+  function addOrUpdateQ(){
+    if(!vQForm()) return;
+    var idx  =parseInt(document.getElementById('editQIdx').value);
+    var type =document.getElementById('qType').value;
+    var q={
+      text   :document.getElementById('qText').value.trim(),
+      type   :type,
+      marks  :parseInt(document.getElementById('qMarks').value),
+      optA   :document.getElementById('optA').value.trim(),
+      optB   :document.getElementById('optB').value.trim(),
+      optC   :document.getElementById('optC').value.trim(),
+      optD   :document.getElementById('optD').value.trim(),
+      correct:document.getElementById('qCorrect').value
+    };
+    if(idx===-1){questions.push(q);showMsg('Question #'+questions.length+' added!','success');}
+    else{questions[idx]=q;showMsg('Question #'+(idx+1)+' updated!','success');}
+    clearQForm(); renderTable(); updateSaveBtn();
+  }
+
+  /* ---- EDIT QUESTION ---- */
+  function editQ(idx){
+    var q=questions[idx];
+    document.getElementById('editQIdx').value=idx;
+    document.getElementById('qFormTitle').textContent='Edit Question #'+(idx+1);
+    document.getElementById('btnAddQ').textContent='\u2714 Update Question';
+    document.getElementById('btnCancelQ').style.display='inline-flex';
+    document.getElementById('qText').value =q.text;
+    document.getElementById('qType').value =q.type;
+    document.getElementById('qMarks').value=q.marks;
+    onTypeChange();
+    if(q.type==='MCQ'){
+      document.getElementById('optA').value=q.optA;
+      document.getElementById('optB').value=q.optB;
+      document.getElementById('optC').value=q.optC;
+      document.getElementById('optD').value=q.optD;
+    }
+    document.getElementById('qCorrect').value=q.correct;
+    vQForm();
+    document.getElementById('qText').scrollIntoView({behavior:'smooth'});
+  }
+
+  function cancelEditQ(){clearQForm();}
+
+  /* ---- DELETE QUESTION ---- */
+  function deleteQ(idx){
+    questions.splice(idx,1);
+    renderTable(); updateSaveBtn();
+    showMsg('Question deleted.','success');
+  }
+
+  /* ---- RENDER TABLE ---- */
+  function renderTable(){
+    var tbody=document.getElementById('qTableBody');
+    var wrap =document.getElementById('qTableWrap');
+    var noMsg=document.getElementById('noQMsg');
+    var badge=document.getElementById('totalBadge');
+    var countLabel=document.getElementById('qCountLabel');
+    tbody.innerHTML='';
+
+    if(questions.length===0){
+      wrap.style.display='none'; noMsg.style.display='block';
+      badge.textContent=''; countLabel.textContent=''; return;
+    }
+    wrap.style.display=''; noMsg.style.display='none';
+    var totalMarks=0; questions.forEach(function(q){totalMarks+=q.marks;});
+    badge.textContent='Total: '+questions.length+' questions | '+totalMarks+' marks';
+    countLabel.textContent=questions.length+' question'+(questions.length>1?'s':'')+' added';
+
+    for(var i=0;i<questions.length;i++){
+      var q=questions[i];
+      var opts=q.type==='MCQ'
+        ?'A: '+esc(q.optA)+' | B: '+esc(q.optB)+'<br>C: '+esc(q.optC)+' | D: '+esc(q.optD)
+        :'True / False';
+      var corr=q.type==='MCQ'
+        ?q.correct+': '+esc({A:q.optA,B:q.optB,C:q.optC,D:q.optD}[q.correct])
+        :q.correct;
+      var typeBadge=q.type==='MCQ'
+        ?'<span class="badge badge-mcq">MCQ</span>'
+        :'<span class="badge badge-tf">T/F</span>';
+      var row=document.createElement('tr');
+      row.innerHTML=
+        '<td><div class="q-num">'+(i+1)+'</div></td>'+
+        '<td>'+esc(q.text)+'</td>'+
+        '<td>'+typeBadge+'</td>'+
+        '<td><span class="marks-chip">'+q.marks+' pt'+(q.marks>1?'s':'')+'</span></td>'+
+        '<td style="font-size:12px;">'+opts+'</td>'+
+        '<td><strong>'+corr+'</strong></td>'+
+        '<td><div class="btn-gap">'+
+          '<button class="btn btn-warning" onclick="editQ('+i+')">&#9998; Edit</button>'+
+          '<button class="btn btn-danger"  onclick="deleteQ('+i+')">&#128465; Del</button>'+
+        '</div></td>';
+      tbody.appendChild(row);
+    }
+  }
+
+  /* ---- UPDATE SAVE BUTTON ---- */
+  function updateSaveBtn(){
+    document.getElementById('btnSaveQuiz').disabled=questions.length===0;
+  }
+
+  /* ---- SAVE QUIZ ---- */
+  function saveQuiz(){
+    if(questions.length===0) return;
+    var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    var quiz={
+      title      :document.getElementById('quizTitle').value.trim(),
+      subject    :document.getElementById('quizSubject').value.trim(),
+      duration   :document.getElementById('quizDuration').value.trim(),
+      difficulty :document.getElementById('quizDiff').value,
+      description:document.getElementById('quizDesc').value.trim(),
+      questions  :JSON.parse(JSON.stringify(questions)),
+      schedule   :(editMode&&quizzes[editIndex]&&quizzes[editIndex].schedule)?quizzes[editIndex].schedule:null
+    };
+    if(editMode&&editIndex>=0&&quizzes[editIndex]){
+      quizzes[editIndex]=quiz;
+    } else {
+      quizzes.push(quiz);
+      editIndex=quizzes.length-1; editMode=true;
+    }
+    localStorage.setItem('qc_quizzes',JSON.stringify(quizzes));
+    setStep(3);
+    document.getElementById('schedCard').style.display='block';
+    document.getElementById('schedCard').scrollIntoView({behavior:'smooth'});
+    showMsg('Quiz "'+quiz.title+'" saved successfully with '+questions.length+' questions!','success');
+  }
+
+  function goSchedule(){
+    localStorage.setItem('qc_schedule_index',editIndex);
+    location.href='schedule-quiz.html';
+  }
+
+  /* ---- CLEAR FORM ---- */
+  function clearQForm(){
+    document.getElementById('editQIdx').value='-1';
+    document.getElementById('qText').value='';
+    document.getElementById('qType').value='';
+    document.getElementById('qMarks').value='';
+    ['optA','optB','optC','optD'].forEach(function(id){document.getElementById(id).value='';});
+    ['errQText','errQType','errQMarks','errOptA','errOptB','errOptC','errOptD','errQCorrect']
+      .forEach(function(id){document.getElementById(id).textContent='';});
+    document.getElementById('qCorrect').innerHTML='<option value="">-- Select Correct Answer --</option>';
+    document.getElementById('mcqBlock').style.display='block';
+    document.getElementById('qFormTitle').textContent='Add Question';
+    document.getElementById('btnAddQ').textContent='+ Add Question';
+    document.getElementById('btnAddQ').disabled=true;
+    document.getElementById('btnCancelQ').style.display='none';
+  }
+
+  /* ---- HELPERS ---- */
+  function showMsg(txt,type){
+    var d=document.getElementById('gMsg');
+    d.className=type==='success'?'msg-success':'msg-error';
+    d.textContent=txt; d.style.display='block';
+    clearTimeout(window._st); window._st=setTimeout(function(){d.style.display='none';},4000);
+  }
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  init();
+</script>
+</body>
+</html>

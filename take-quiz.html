@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizCraft – Take Quiz</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#333;}
+    .navbar{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;
+      position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    .nav-brand{font-size:20px;font-weight:700;}.nav-brand small{font-size:11px;opacity:.8;display:block;font-weight:400;}
+    .nav-links a{color:rgba(255,255,255,.85);text-decoration:none;padding:6px 14px;
+      border-radius:6px;font-size:14px;font-weight:500;margin:0 2px;}
+    .nav-links a:hover,.nav-links a.active{background:rgba(255,255,255,.2);color:#fff;}
+    .btn-nav{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);
+      color:#fff;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;font-weight:600;text-decoration:none;}
+
+    .page{max-width:800px;margin:28px auto;padding:0 20px;}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px;}
+    .page-sub{color:#888;font-size:13px;margin-bottom:20px;}
+
+    .card{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:24px 28px;margin-bottom:22px;}
+    .card-title{font-size:15px;font-weight:700;color:#444;padding-bottom:14px;
+      border-bottom:2px solid #f0f2f5;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+    .card-title-icon{width:26px;height:26px;border-radius:6px;
+      background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-size:13px;}
+
+    /* QUIZ GRID */
+    .quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .quiz-pick-card{border:2px solid #dde1e7;border-radius:10px;padding:16px;cursor:pointer;
+      background:#fafbfc;transition:.2s;}
+    .quiz-pick-card:hover{border-color:#667eea;background:#f5f3ff;}
+    .qpc-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+    .qpc-meta{font-size:12px;color:#888;line-height:1.7;}
+    .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+    .badge-live    {background:#dcfce7;color:#166534;}
+    .badge-upcoming{background:#dbeafe;color:#1d4ed8;}
+    .badge-ended   {background:#fee2e2;color:#991b1b;}
+    .badge-open    {background:#ede9fe;color:#7c3aed;}
+    .badge-mcq{background:#ede9fe;color:#7c3aed;} .badge-tf{background:#dcfce7;color:#166534;}
+
+    /* FORM */
+    .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+    .fg label{font-size:13px;font-weight:600;color:#555;}
+    .req{color:red;}
+    .fg input{padding:9px 13px;border:1.5px solid #dde1e7;border-radius:8px;
+      font-size:14px;font-family:inherit;background:#fafbfc;outline:none;transition:.2s;}
+    .fg input:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.12);background:#fff;}
+    .err{color:red;font-size:11px;margin-top:3px;}
+
+    /* BUTTONS */
+    .btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;
+      font-weight:600;font-family:inherit;transition:all .18s;display:inline-flex;
+      align-items:center;gap:6px;text-decoration:none;}
+    .btn:disabled{opacity:.45;cursor:not-allowed;}
+    .btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      box-shadow:0 2px 8px rgba(102,126,234,.3);}
+    .btn-primary:hover:not(:disabled){opacity:.9;transform:translateY(-1px);}
+    .btn-secondary{background:#f0f2f5;color:#555;border:1.5px solid #dde1e7;}
+    .btn-secondary:hover:not(:disabled){background:#e4e7ed;}
+    .btn-success{background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;
+      box-shadow:0 2px 8px rgba(17,153,142,.25);}
+    .btn-success:hover:not(:disabled){opacity:.9;transform:translateY(-1px);}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;
+      padding-top:16px;border-top:1px solid #f0f2f5;}
+
+    /* TIMER */
+    .timer-bar{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      border-radius:10px;padding:12px 20px;margin-bottom:20px;
+      display:flex;justify-content:space-between;align-items:center;font-weight:700;}
+    .timer-val{font-size:22px;font-family:monospace;}
+    .timer-warn{background:linear-gradient(135deg,#f97316,#ef4444);}
+
+    /* QUESTION CARD */
+    .q-card{border:1.5px solid #e8eaed;border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+    .q-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+    .q-label{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;}
+    .q-marks{font-size:12px;background:#fff7ed;color:#c2410c;padding:3px 9px;border-radius:20px;font-weight:700;}
+    .q-text{font-size:15px;font-weight:600;margin-bottom:14px;}
+    .q-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;list-style:none;}
+    .q-opt{border:1.5px solid #dde1e7;border-radius:8px;padding:0;overflow:hidden;}
+    .q-opt label{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;
+      font-size:13px;width:100%;}
+    .q-opt label:hover{background:#f5f3ff;}
+    .q-opt input[type=radio]{accent-color:#667eea;width:16px;height:16px;flex-shrink:0;}
+    .q-opt.selected{border-color:#667eea;background:#f5f3ff;}
+    .q-opt.correct{border-color:#86efac;background:#f0fdf4;}
+    .q-opt.wrong  {border-color:#fca5a5;background:#fff0f0;}
+    .opt-letter{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);
+      color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;
+      font-weight:700;flex-shrink:0;}
+    .q-err{color:red;font-size:12px;margin-top:8px;}
+    .q-feedback{font-size:12px;margin-top:8px;font-weight:600;padding:6px 12px;border-radius:6px;}
+    .fb-correct{background:#f0fdf4;color:#166534;} .fb-wrong{background:#fff0f0;color:#dc2626;}
+
+    /* RESULT */
+    .result-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      border-radius:10px 10px 0 0;margin:-24px -28px 20px;padding:24px 28px;}
+    .result-score{font-size:36px;font-weight:800;margin:8px 0;}
+    .result-grade{font-size:18px;opacity:.9;}
+    .result-meta{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;}
+    .result-meta span{background:rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;font-size:12px;}
+    .pass-banner{padding:12px 16px;border-radius:8px;text-align:center;font-size:16px;
+      font-weight:700;margin-bottom:18px;}
+    .pass-banner.pass{background:#f0fdf4;color:#166534;border:2px solid #86efac;}
+    .pass-banner.fail{background:#fff0f0;color:#dc2626;border:2px solid #fca5a5;}
+
+    table.info{border-collapse:collapse;width:100%;font-size:13px;margin-bottom:16px;}
+    table.info td{padding:8px 12px;border:1px solid #e8eaed;}
+    table.info td:first-child{font-weight:600;background:#f7f8fc;width:35%;}
+
+    .msg-error{background:#fff0f0;border:1.5px solid #fca5a5;color:#991b1b;
+      padding:12px 18px;border-radius:8px;margin-bottom:18px;font-weight:600;}
+    .empty{text-align:center;padding:36px;color:#aaa;font-size:13px;}
+    .empty-icon{font-size:48px;margin-bottom:12px;}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">&#9998; QuizCraft <small>Online Quiz Platform</small></div>
+  <div class="nav-links">
+    <a href="index.html">&#127968; Dashboard</a>
+    <a href="create-quiz.html">&#128221; Create Quiz</a>
+    <a href="schedule-quiz.html">&#128197; Schedule</a>
+    <a href="take-quiz.html" class="active">&#9654; Take Quiz</a>
+  </div>
+  <a href="index.html" class="btn-nav">&#8592; Dashboard</a>
+</nav>
+
+<div class="page">
+
+  <!-- ============================================================
+       VIEW 1 : QUIZ LIST
+  ============================================================ -->
+  <div id="listView">
+    <div class="page-title">&#9654; Available Quizzes</div>
+    <div class="page-sub">Select a quiz to attempt. Check status before starting.</div>
+
+    <div id="gMsgList" style="display:none;"></div>
+
+    <div class="card">
+      <div id="noQuizDiv" class="empty" style="display:none;">
+        <div class="empty-icon">&#128196;</div>
+        <p>No quizzes available. <a href="create-quiz.html">Create one first</a>.</p>
+      </div>
+      <div id="quizListGrid" class="quiz-grid"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       VIEW 2 : STUDENT ENTRY
+  ============================================================ -->
+  <div id="entryView" style="display:none;">
+    <div class="page-title">&#9997; Start Quiz</div>
+    <div class="page-sub">Enter your name to begin.</div>
+
+    <div class="card" id="quizInfoCard"></div>
+
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon">&#9998;</div> Your Details</div>
+      <div class="fg">
+        <label for="studentName">Full Name <span class="req">*</span></label>
+        <input type="text" id="studentName" placeholder="Enter your full name" oninput="vEntry()">
+        <div class="err" id="errStudentName"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnStart" onclick="startQuiz()" disabled>
+          &#9654; Start Quiz
+        </button>
+        <button class="btn btn-secondary" onclick="showListView()">&#8592; Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       VIEW 3 : TAKING QUIZ
+  ============================================================ -->
+  <div id="takingView" style="display:none;">
+    <!-- Timer -->
+    <div class="timer-bar" id="timerBar">
+      <span id="timerLabel">&#9200; Time Remaining</span>
+      <span class="timer-val" id="timerVal">--:--</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon">&#9997;</div>
+        <span id="takingTitle"></span>
+        <span id="takingMeta" style="margin-left:auto;font-size:12px;color:#888;font-weight:500;"></span>
+      </div>
+      <div id="questionsBlock"></div>
+      <div class="btn-row">
+        <button class="btn btn-success" id="btnSubmit" onclick="submitQuiz()">
+          &#9989; Submit Quiz
+        </button>
+      </div>
+      <div id="submitErr" style="color:red;font-size:13px;margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       VIEW 4 : RESULT
+  ============================================================ -->
+  <div id="resultView" style="display:none;">
+    <div class="card">
+      <div class="result-header">
+        <div style="font-size:13px;opacity:.8;">Quiz Result</div>
+        <div class="result-score" id="resScore"></div>
+        <div class="result-grade" id="resGrade"></div>
+        <div class="result-meta" id="resMeta"></div>
+      </div>
+      <div id="resBanner"></div>
+      <div id="resDetail"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="retake()">&#8635; Try Again</button>
+        <a href="index.html" class="btn btn-secondary">&#127968; Dashboard</a>
+        <a href="take-quiz.html" class="btn btn-secondary">&#9654; Other Quizzes</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- page -->
+
+<script>
+  var currentIdx  = -1;
+  var currentQuiz = null;
+  var timerInt    = null;
+  var timeLeft    = 0;
+  var studentName = '';
+
+  /* ---- INIT ---- */
+  function init(){
+    var raw=localStorage.getItem('qc_take_index');
+    if(raw!==null&&raw!==''){
+      currentIdx=parseInt(raw); localStorage.removeItem('qc_take_index');
+      var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+      if(quizzes[currentIdx]){showEntryView(currentIdx);return;}
+    }
+    showListView();
+  }
+
+  /* ---- LIST VIEW ---- */
+  function showListView(){
+    clearInterval(timerInt);
+    show('listView'); hide('entryView'); hide('takingView'); hide('resultView');
+    var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    var grid=document.getElementById('quizListGrid');
+    var noDiv=document.getElementById('noQuizDiv');
+    grid.innerHTML='';
+    var available=quizzes.filter(function(q){return q.questions.length>0;});
+    if(available.length===0){noDiv.style.display='block';return;}
+    noDiv.style.display='none';
+
+    var now=new Date();
+    for(var i=0;i<quizzes.length;i++){
+      var q=quizzes[i]; if(q.questions.length===0) continue;
+      var totalMarks=0; q.questions.forEach(function(qu){totalMarks+=qu.marks;});
+      var status='Open'; var badgeCls='badge-open'; var canTake=true;
+      if(q.schedule&&q.schedule.startDate){
+        var start=new Date(q.schedule.startDate+'T'+q.schedule.startTime);
+        var end  =new Date(start.getTime()+q.schedule.duration*60000);
+        if(now<start)     {status='Upcoming';badgeCls='badge-upcoming';canTake=false;}
+        else if(now<=end) {status='Live Now';badgeCls='badge-live';canTake=true;}
+        else              {status='Ended';badgeCls='badge-ended';canTake=false;}
+      }
+      var schedLine=q.schedule&&q.schedule.startDate
+        ?q.schedule.startDate+' '+q.schedule.startTime+' | '+q.schedule.duration+' mins'
+        :'Open / Unscheduled';
+      var card=document.createElement('div');
+      card.className='quiz-pick-card';
+      card.innerHTML=
+        '<div class="qpc-title">'+esc(q.title)+'</div>'+
+        '<div class="qpc-meta">'+
+          esc(q.subject)+' | '+
+          (q.difficulty?esc(q.difficulty)+' | ':'')+
+          q.questions.length+' Questions | '+
+          totalMarks+' Marks<br>'+
+          esc(schedLine)+
+        '</div>'+
+        '<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">'+
+          '<span class="badge '+badgeCls+'">'+status+'</span>'+
+          (canTake?'<button class="btn btn-primary" style="padding:6px 14px;font-size:12px;" onclick="showEntryView('+i+')">&#9654; Take Quiz</button>':'<em style="font-size:12px;color:#888;">'+status+'</em>')+
+        '</div>';
+      grid.appendChild(card);
+    }
+  }
+
+  /* ---- ENTRY VIEW ---- */
+  function showEntryView(idx){
+    currentIdx=idx;
+    var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    currentQuiz=quizzes[idx];
+    if(!currentQuiz) return showListView();
+    var totalMarks=0; currentQuiz.questions.forEach(function(q){totalMarks+=q.marks;});
+    var dur=(currentQuiz.schedule&&currentQuiz.schedule.duration)?currentQuiz.schedule.duration:currentQuiz.duration||null;
+
+    document.getElementById('quizInfoCard').innerHTML=
+      '<div class="card-title"><div class="card-title-icon">&#128196;</div>Quiz Information</div>'+
+      '<table class="info">'+
+      '<tr><td>Quiz Title</td><td><strong>'+esc(currentQuiz.title)+'</strong></td></tr>'+
+      '<tr><td>Subject</td><td>'+esc(currentQuiz.subject)+'</td></tr>'+
+      (currentQuiz.difficulty?'<tr><td>Difficulty</td><td>'+esc(currentQuiz.difficulty)+'</td></tr>':'')+
+      '<tr><td>Total Questions</td><td>'+currentQuiz.questions.length+'</td></tr>'+
+      '<tr><td>Total Marks</td><td>'+totalMarks+'</td></tr>'+
+      (dur?'<tr><td>Duration</td><td>'+dur+' minutes</td></tr>':'')+
+      ((currentQuiz.schedule&&currentQuiz.schedule.passMark)?'<tr><td>Pass Mark</td><td>'+currentQuiz.schedule.passMark+'%</td></tr>':'')+
+      ((currentQuiz.schedule&&currentQuiz.schedule.instructions)?'<tr><td>Instructions</td><td>'+esc(currentQuiz.schedule.instructions)+'</td></tr>':'')+
+      '</table>';
+
+    document.getElementById('studentName').value='';
+    document.getElementById('errStudentName').textContent='';
+    document.getElementById('btnStart').disabled=true;
+    show('entryView'); hide('listView'); hide('takingView'); hide('resultView');
+  }
+
+  function vEntry(){
+    var n=document.getElementById('studentName').value.trim();
+    if(!n){document.getElementById('errStudentName').textContent='Please enter your name.';document.getElementById('btnStart').disabled=true;}
+    else  {document.getElementById('errStudentName').textContent='';document.getElementById('btnStart').disabled=false;}
+  }
+
+  /* ---- START QUIZ ---- */
+  function startQuiz(){
+    studentName=document.getElementById('studentName').value.trim();
+    if(!studentName) return;
+    show('takingView'); hide('entryView'); hide('listView'); hide('resultView');
+
+    var totalMarks=0; currentQuiz.questions.forEach(function(q){totalMarks+=q.marks;});
+    document.getElementById('takingTitle').textContent=currentQuiz.title;
+    document.getElementById('takingMeta').textContent=
+      currentQuiz.questions.length+' Questions | '+totalMarks+' Marks | Student: '+studentName;
+
+    // Build questions
+    var html='';
+    for(var i=0;i<currentQuiz.questions.length;i++){
+      var q=currentQuiz.questions[i];
+      var typeBadge=q.type==='MCQ'?'<span class="badge badge-mcq">MCQ</span>':'<span class="badge badge-tf">True/False</span>';
+      html+='<div class="q-card" id="qCard_'+i+'">';
+      html+='<div class="q-header"><div><div class="q-label">'+typeBadge+' &nbsp; Question '+(i+1)+' of '+currentQuiz.questions.length+'</div></div>';
+      html+='<div class="q-marks">'+q.marks+' mark'+(q.marks>1?'s':'')+'</div></div>';
+      html+='<div class="q-text">'+esc(q.text)+'</div>';
+      html+='<ul class="q-options" id="opts_'+i+'">';
+      if(q.type==='MCQ'){
+        var opts=[{k:'A',v:q.optA},{k:'B',v:q.optB},{k:'C',v:q.optC},{k:'D',v:q.optD}];
+        opts.forEach(function(o){
+          html+='<li class="q-opt" id="opt_'+i+'_'+o.k+'">'+
+            '<label><input type="radio" name="ans_'+i+'" value="'+o.k+'" onchange="onOptChange('+i+')" >'+
+            '<span class="opt-letter">'+o.k+'</span>'+esc(o.v)+'</label></li>';
+        });
+      } else {
+        ['True','False'].forEach(function(v){
+          html+='<li class="q-opt" id="opt_'+i+'_'+v+'">'+
+            '<label><input type="radio" name="ans_'+i+'" value="'+v+'" onchange="onOptChange('+i+')" >'+
+            '<span class="opt-letter">'+v[0]+'</span>'+v+'</label></li>';
+        });
+      }
+      html+='</ul>';
+      html+='<div class="q-err" id="qErr_'+i+'"></div></div>';
+    }
+    document.getElementById('questionsBlock').innerHTML=html;
+    document.getElementById('submitErr').textContent='';
+
+    // Timer
+    clearInterval(timerInt);
+    var durMins=(currentQuiz.schedule&&currentQuiz.schedule.duration)?parseInt(currentQuiz.schedule.duration)
+               :(currentQuiz.duration?parseInt(currentQuiz.duration):0);
+    if(durMins>0){
+      timeLeft=durMins*60; updateTimer();
+      timerInt=setInterval(function(){
+        timeLeft--;
+        updateTimer();
+        if(timeLeft<=30) document.getElementById('timerBar').className='timer-bar timer-warn';
+        if(timeLeft<=0){clearInterval(timerInt);submitQuiz(true);}
+      },1000);
+    } else {
+      document.getElementById('timerVal').textContent='No limit';
+    }
+  }
+
+  function onOptChange(i){
+    // Highlight selected option
+    var radios=document.getElementsByName('ans_'+i);
+    radios.forEach(function(r){
+      var li=document.getElementById('opt_'+i+'_'+r.value);
+      if(li) li.className='q-opt'+(r.checked?' selected':'');
+    });
+    document.getElementById('qErr_'+i).textContent='';
+  }
+
+  function updateTimer(){
+    var m=Math.floor(timeLeft/60), s=timeLeft%60;
+    document.getElementById('timerVal').textContent=(m<10?'0'+m:m)+':'+(s<10?'0'+s:s);
+  }
+
+  /* ---- SUBMIT ---- */
+  function submitQuiz(auto){
+    clearInterval(timerInt);
+    var allOk=true;
+    for(var i=0;i<currentQuiz.questions.length;i++){
+      var radios=document.getElementsByName('ans_'+i);
+      var answered=false;
+      for(var r=0;r<radios.length;r++) if(radios[r].checked){answered=true;break;}
+      if(!answered){
+        document.getElementById('qErr_'+i).textContent='Please select an answer.';
+        allOk=false;
+      }
+    }
+    if(!allOk&&!auto){
+      document.getElementById('submitErr').textContent='Please answer all questions before submitting.';
+      return;
+    }
+
+    // Calculate
+    var score=0, totalMarks=0;
+    var detailRows='';
+    for(var i=0;i<currentQuiz.questions.length;i++){
+      var q=currentQuiz.questions[i]; totalMarks+=q.marks;
+      var sel=''; var radios=document.getElementsByName('ans_'+i);
+      for(var r=0;r<radios.length;r++) if(radios[r].checked){sel=radios[r].value;break;}
+      var correct=(sel===q.correct);
+      if(correct) score+=q.marks;
+
+      var selLabel=sel||'(No answer)';
+      var corrLabel=q.correct;
+      if(q.type==='MCQ'){
+        var m={A:q.optA,B:q.optB,C:q.optC,D:q.optD};
+        if(sel) selLabel=sel+': '+esc(m[sel]||'');
+        corrLabel=q.correct+': '+esc(m[q.correct]||'');
+      }
+
+      var typeBadge=q.type==='MCQ'?'<span class="badge badge-mcq">MCQ</span>':'<span class="badge badge-tf">T/F</span>';
+      detailRows+=
+        '<div class="q-card">'+
+        '<div class="q-header"><div class="q-label">'+typeBadge+' Q'+(i+1)+'</div>'+
+        '<div class="q-marks">'+q.marks+' mark'+(q.marks>1?'s':'')+'</div></div>'+
+        '<div class="q-text">'+esc(q.text)+'</div>'+
+        '<p style="font-size:13px;">Your answer: <strong>'+selLabel+'</strong></p>'+
+        (correct
+          ?'<div class="q-feedback fb-correct">&#10004; Correct! +'+q.marks+' marks</div>'
+          :'<div class="q-feedback fb-wrong">&#10008; Wrong &mdash; Correct answer: <strong>'+corrLabel+'</strong></div>'
+        )+'</div>';
+    }
+
+    var pct=totalMarks>0?Math.round(score/totalMarks*100):0;
+    var grade=pct>=90?'Excellent! &#127881;':pct>=75?'Very Good! &#127775;':pct>=60?'Good &#128076;':pct>=40?'Pass &#128077;':'Needs Improvement &#128218;';
+    var passMark=currentQuiz.schedule&&currentQuiz.schedule.passMark?parseInt(currentQuiz.schedule.passMark):null;
+    var passed=passMark===null?null:(pct>=passMark);
+
+    document.getElementById('resScore').textContent=score+' / '+totalMarks+' ('+pct+'%)';
+    document.getElementById('resGrade').innerHTML=grade;
+    document.getElementById('resMeta').innerHTML=
+      '<span>&#128203; '+currentQuiz.title+'</span>'+
+      '<span>&#128100; '+esc(studentName)+'</span>'+
+      '<span>&#10067; '+currentQuiz.questions.length+' Questions</span>'+
+      (passMark!==null?'<span>&#127937; Pass Mark: '+passMark+'%</span>':'');
+
+    if(passed===true)
+      document.getElementById('resBanner').innerHTML='<div class="pass-banner pass">&#10004; PASSED</div>';
+    else if(passed===false)
+      document.getElementById('resBanner').innerHTML='<div class="pass-banner fail">&#10008; FAILED &mdash; Pass mark was '+passMark+'%</div>';
+    else
+      document.getElementById('resBanner').innerHTML='';
+
+    document.getElementById('resDetail').innerHTML='<h4 style="margin-bottom:14px;">&#128203; Answer Review</h4>'+detailRows;
+    show('resultView'); hide('takingView'); hide('entryView'); hide('listView');
+    document.getElementById('resultView').scrollIntoView({behavior:'smooth'});
+  }
+
+  function retake(){showEntryView(currentIdx);}
+
+  /* ---- HELPERS ---- */
+  function show(id){document.getElementById(id).style.display='block';}
+  function hide(id){document.getElementById(id).style.display='none';}
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  init();
+</script>
+</body>
+</html>

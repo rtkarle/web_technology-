@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizCraft – Schedule Quiz</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#333;}
+    .navbar{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;
+      position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    .nav-brand{font-size:20px;font-weight:700;}.nav-brand small{font-size:11px;opacity:.8;display:block;font-weight:400;}
+    .nav-links a{color:rgba(255,255,255,.85);text-decoration:none;padding:6px 14px;
+      border-radius:6px;font-size:14px;font-weight:500;margin:0 2px;}
+    .nav-links a:hover,.nav-links a.active{background:rgba(255,255,255,.2);color:#fff;}
+    .btn-nav{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);
+      color:#fff;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;font-weight:600;text-decoration:none;}
+
+    .page{max-width:860px;margin:28px auto;padding:0 20px;}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px;}
+    .page-sub{color:#888;font-size:13px;margin-bottom:20px;}
+
+    .card{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:24px 28px;margin-bottom:22px;}
+    .card-title{font-size:15px;font-weight:700;color:#444;padding-bottom:14px;
+      border-bottom:2px solid #f0f2f5;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+    .card-title-icon{width:26px;height:26px;border-radius:6px;
+      background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .form-grid.cols1{grid-template-columns:1fr;}
+    .fg{display:flex;flex-direction:column;gap:5px;}
+    .fg.span2{grid-column:span 2;}
+    .fg label{font-size:13px;font-weight:600;color:#555;}
+    .req{color:red;}
+    .fg input,.fg select{padding:9px 13px;border:1.5px solid #dde1e7;border-radius:8px;
+      font-size:14px;font-family:inherit;background:#fafbfc;outline:none;transition:.2s;}
+    .fg input:focus,.fg select:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.12);background:#fff;}
+    .err{color:red;font-size:11px;margin-top:3px;min-height:14px;}
+
+    .btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;
+      font-weight:600;font-family:inherit;transition:all .18s;display:inline-flex;
+      align-items:center;gap:6px;text-decoration:none;}
+    .btn:disabled{opacity:.45;cursor:not-allowed;}
+    .btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      box-shadow:0 2px 8px rgba(102,126,234,.3);}
+    .btn-primary:hover:not(:disabled){opacity:.9;transform:translateY(-1px);}
+    .btn-secondary{background:#f0f2f5;color:#555;border:1.5px solid #dde1e7;}
+    .btn-secondary:hover{background:#e4e7ed;}
+    .btn-danger{background:#fff0f0;color:#dc2626;border:1.5px solid #fca5a5;}
+    .btn-danger:hover{background:#fee2e2;}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;
+      padding-top:16px;border-top:1px solid #f0f2f5;}
+
+    .msg-success{background:#f0fdf4;border:1.5px solid #86efac;color:#166534;
+      padding:12px 18px;border-radius:8px;margin-bottom:18px;font-weight:600;}
+    .msg-error{background:#fff0f0;border:1.5px solid #fca5a5;color:#991b1b;
+      padding:12px 18px;border-radius:8px;margin-bottom:18px;font-weight:600;}
+
+    /* QUIZ PICKER */
+    .quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .quiz-card{border:2px solid #dde1e7;border-radius:10px;padding:14px 16px;cursor:pointer;transition:.2s;background:#fafbfc;}
+    .quiz-card:hover{border-color:#667eea;background:#f5f3ff;}
+    .quiz-card.selected{border-color:#667eea;background:#ede9fe;}
+    .quiz-card-title{font-weight:700;font-size:14px;margin-bottom:4px;}
+    .quiz-card-meta{font-size:12px;color:#888;}
+    .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+    .badge-sched{background:#dbeafe;color:#1d4ed8;} .badge-unsched{background:#f1f5f9;color:#475569;}
+
+    /* CURRENT SCHED BANNER */
+    .sched-banner{background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;
+      padding:12px 16px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;}
+    .sched-banner-text{font-size:13px;color:#1d4ed8;font-weight:600;}
+
+    /* INFO TABLE */
+    table.info{border-collapse:collapse;width:100%;font-size:13px;}
+    table.info td{padding:8px 12px;border:1px solid #e8eaed;}
+    table.info td:first-child{font-weight:600;background:#f7f8fc;width:35%;}
+    .empty{text-align:center;padding:30px;color:#aaa;font-size:13px;}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">&#9998; QuizCraft <small>Online Quiz Platform</small></div>
+  <div class="nav-links">
+    <a href="index.html">&#127968; Dashboard</a>
+    <a href="create-quiz.html">&#128221; Create Quiz</a>
+    <a href="schedule-quiz.html" class="active">&#128197; Schedule</a>
+    <a href="take-quiz.html">&#9654; Take Quiz</a>
+  </div>
+  <a href="index.html" class="btn-nav">&#8592; Dashboard</a>
+</nav>
+
+<div class="page">
+  <div class="page-title">&#128197; Schedule Quiz</div>
+  <div class="page-sub">Choose a quiz and set its start date, time, duration and pass mark.</div>
+
+  <div id="gMsg" style="display:none;"></div>
+
+  <!-- STEP A : PICK QUIZ -->
+  <div class="card" id="pickCard">
+    <div class="card-title"><div class="card-title-icon">1</div> Select a Quiz to Schedule</div>
+    <div id="noQuizMsg" class="empty">No quizzes found. <a href="create-quiz.html">Create one first</a>.</div>
+    <div id="quizPickGrid" class="quiz-grid"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnGoSched" onclick="showSchedForm()" disabled>
+        Next: Set Schedule &#8594;
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP B : SCHEDULE FORM -->
+  <div class="card" id="schedCard" style="display:none;">
+    <div class="card-title">
+      <div class="card-title-icon">2</div>
+      Set Schedule for: <span id="schedQuizName" style="color:#667eea;margin-left:6px;"></span>
+    </div>
+
+    <!-- Current schedule banner -->
+    <div id="currentSchedBanner" style="display:none;" class="sched-banner">
+      <div class="sched-banner-text" id="currentSchedText"></div>
+      <button class="btn btn-danger" onclick="clearSchedule()">&#10006; Remove Schedule</button>
+    </div>
+
+    <!-- Quiz info summary -->
+    <div id="quizInfoSummary" style="margin-bottom:18px;"></div>
+
+    <div class="form-grid">
+      <div class="fg">
+        <label>Start Date <span class="req">*</span></label>
+        <input type="date" id="schedDate" oninput="vSched()">
+        <div class="err" id="errSchedDate"></div>
+      </div>
+      <div class="fg">
+        <label>Start Time <span class="req">*</span></label>
+        <input type="time" id="schedTime" oninput="vSched()">
+        <div class="err" id="errSchedTime"></div>
+      </div>
+      <div class="fg">
+        <label>Duration (minutes) <span class="req">*</span></label>
+        <input type="number" id="schedDur" min="1" placeholder="e.g. 30" oninput="vSched()">
+        <div class="err" id="errSchedDur"></div>
+      </div>
+      <div class="fg">
+        <label>Max Attempts</label>
+        <select id="schedAttempts">
+          <option value="1">1 — One time only</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="unlimited">Unlimited</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Pass Mark (%)</label>
+        <input type="number" id="schedPass" min="0" max="100" placeholder="e.g. 60" oninput="vSched()">
+        <div class="err" id="errSchedPass"></div>
+      </div>
+      <div class="fg">
+        <label>Instructions for Students</label>
+        <input type="text" id="schedInstructions" placeholder="e.g. No calculators allowed">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnSaveSched" onclick="saveSchedule()" disabled>
+        &#128197; Save Schedule
+      </button>
+      <button class="btn btn-secondary" onclick="document.getElementById('schedCard').style.display='none';document.getElementById('pickCard').style.display='block';">
+        &#8592; Change Quiz
+      </button>
+      <a href="index.html" class="btn btn-secondary">Cancel</a>
+    </div>
+  </div>
+
+  <!-- STEP C : CONFIRMATION -->
+  <div class="card" id="confirmCard" style="display:none;">
+    <div class="card-title"><div class="card-title-icon">&#10003;</div> Schedule Saved!</div>
+    <div id="confirmContent"></div>
+    <div class="btn-row">
+      <a href="take-quiz.html" class="btn btn-primary">&#9654; Go to Take Quiz</a>
+      <a href="index.html" class="btn btn-secondary">&#127968; Dashboard</a>
+      <button class="btn btn-secondary" onclick="editSched()">&#9998; Edit Schedule</button>
+    </div>
+  </div>
+
+</div><!-- page -->
+
+<script>
+  var selectedIdx = -1;
+
+  function init(){
+    var raw=localStorage.getItem('qc_schedule_index');
+    if(raw!==null&&raw!==''){
+      selectedIdx=parseInt(raw); localStorage.removeItem('qc_schedule_index');
+    }
+    renderPicker();
+    if(selectedIdx>=0){
+      var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+      if(quizzes[selectedIdx]) showSchedForm();
+    }
+  }
+
+  function renderPicker(){
+    var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    var grid=document.getElementById('quizPickGrid');
+    var noMsg=document.getElementById('noQuizMsg');
+    grid.innerHTML='';
+    if(quizzes.length===0){noMsg.style.display='block';return;}
+    noMsg.style.display='none';
+
+    for(var i=0;i<quizzes.length;i++){
+      var q=quizzes[i];
+      var totalMarks=0; q.questions.forEach(function(qu){totalMarks+=qu.marks;});
+      var hasSched=!!(q.schedule&&q.schedule.startDate);
+      var schedLabel=hasSched
+        ?'<span class="badge badge-sched">&#128197; '+q.schedule.startDate+' '+q.schedule.startTime+'</span>'
+        :'<span class="badge badge-unsched">Not Scheduled</span>';
+      var card=document.createElement('div');
+      card.className='quiz-card'+(selectedIdx===i?' selected':'');
+      card.onclick=(function(idx){return function(){selectQuiz(idx);};})(i);
+      card.innerHTML=
+        '<div class="quiz-card-title">'+esc(q.title)+'</div>'+
+        '<div class="quiz-card-meta">'+esc(q.subject)+' | '+q.questions.length+' Q | '+totalMarks+' marks</div>'+
+        '<div style="margin-top:6px;">'+schedLabel+'</div>';
+      grid.appendChild(card);
+    }
+    document.getElementById('btnGoSched').disabled=(selectedIdx<0);
+  }
+
+  function selectQuiz(idx){
+    selectedIdx=idx;
+    document.querySelectorAll('.quiz-card').forEach(function(c,i){
+      c.className='quiz-card'+(i===idx?' selected':'');
+    });
+    document.getElementById('btnGoSched').disabled=false;
+  }
+
+  function showSchedForm(){
+    if(selectedIdx<0) return;
+    var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    var q=quizzes[selectedIdx];
+    if(!q) return;
+
+    document.getElementById('pickCard').style.display='none';
+    document.getElementById('schedCard').style.display='block';
+    document.getElementById('confirmCard').style.display='none';
+    document.getElementById('schedQuizName').textContent=q.title;
+
+    // Info summary
+    var totalMarks=0; q.questions.forEach(function(qu){totalMarks+=qu.marks;});
+    document.getElementById('quizInfoSummary').innerHTML=
+      '<table class="info">'+
+      '<tr><td>Subject</td><td>'+esc(q.subject)+'</td></tr>'+
+      '<tr><td>Questions</td><td>'+q.questions.length+'</td></tr>'+
+      '<tr><td>Total Marks</td><td>'+totalMarks+'</td></tr>'+
+      (q.difficulty?'<tr><td>Difficulty</td><td>'+esc(q.difficulty)+'</td></tr>':'')+'</table>';
+
+    // Pre-fill if scheduled
+    if(q.schedule&&q.schedule.startDate){
+      document.getElementById('schedDate').value    =q.schedule.startDate;
+      document.getElementById('schedTime').value    =q.schedule.startTime;
+      document.getElementById('schedDur').value     =q.schedule.duration;
+      document.getElementById('schedAttempts').value=q.schedule.maxAttempts||'1';
+      document.getElementById('schedPass').value    =q.schedule.passMark||'';
+      document.getElementById('schedInstructions').value=q.schedule.instructions||'';
+      document.getElementById('currentSchedBanner').style.display='flex';
+      document.getElementById('currentSchedText').textContent=
+        '&#128197; Currently scheduled: '+q.schedule.startDate+' at '+q.schedule.startTime+
+        ' | Duration: '+q.schedule.duration+' mins';
+    } else {
+      document.getElementById('currentSchedBanner').style.display='none';
+      document.getElementById('schedDate').value='';
+      document.getElementById('schedTime').value='';
+      document.getElementById('schedDur').value='';
+      document.getElementById('schedPass').value='';
+      document.getElementById('schedInstructions').value='';
+    }
+    vSched();
+  }
+
+  function vSched(){
+    var date=document.getElementById('schedDate').value;
+    var time=document.getElementById('schedTime').value;
+    var dur =document.getElementById('schedDur').value.trim();
+    var pass=document.getElementById('schedPass').value.trim();
+    var ok=true;
+    if(!date){document.getElementById('errSchedDate').textContent='Start date is required.';ok=false;}
+    else      {document.getElementById('errSchedDate').textContent='';}
+    if(!time){document.getElementById('errSchedTime').textContent='Start time is required.';ok=false;}
+    else      {document.getElementById('errSchedTime').textContent='';}
+    if(dur===''||isNaN(dur)||parseInt(dur)<1||dur.indexOf('.')!==-1){
+      document.getElementById('errSchedDur').textContent='Duration must be a positive whole number (minutes).';ok=false;}
+    else{document.getElementById('errSchedDur').textContent='';}
+    if(pass!==''&&(isNaN(pass)||parseInt(pass)<0||parseInt(pass)>100)){
+      document.getElementById('errSchedPass').textContent='Pass mark must be 0–100.';ok=false;}
+    else{document.getElementById('errSchedPass').textContent='';}
+    document.getElementById('btnSaveSched').disabled=!ok;
+    return ok;
+  }
+
+  function saveSchedule(){
+    if(!vSched()||selectedIdx<0) return;
+    var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    if(!quizzes[selectedIdx]) return;
+
+    var sched={
+      startDate   :document.getElementById('schedDate').value,
+      startTime   :document.getElementById('schedTime').value,
+      duration    :parseInt(document.getElementById('schedDur').value),
+      maxAttempts :document.getElementById('schedAttempts').value,
+      passMark    :document.getElementById('schedPass').value.trim(),
+      instructions:document.getElementById('schedInstructions').value.trim()
+    };
+    quizzes[selectedIdx].schedule=sched;
+    localStorage.setItem('qc_quizzes',JSON.stringify(quizzes));
+
+    // Show confirmation
+    var q=quizzes[selectedIdx];
+    var totalMarks=0; q.questions.forEach(function(qu){totalMarks+=qu.marks;});
+    var start=new Date(sched.startDate+'T'+sched.startTime);
+    var end  =new Date(start.getTime()+sched.duration*60000);
+
+    document.getElementById('schedCard').style.display='none';
+    document.getElementById('confirmCard').style.display='block';
+    document.getElementById('confirmContent').innerHTML=
+      '<table class="info">'+
+      '<tr><td>Quiz</td><td><strong>'+esc(q.title)+'</strong></td></tr>'+
+      '<tr><td>Subject</td><td>'+esc(q.subject)+'</td></tr>'+
+      '<tr><td>Questions</td><td>'+q.questions.length+'</td></tr>'+
+      '<tr><td>Total Marks</td><td>'+totalMarks+'</td></tr>'+
+      '<tr><td>Start</td><td><strong>'+sched.startDate+' at '+sched.startTime+'</strong></td></tr>'+
+      '<tr><td>End (approx.)</td><td>'+end.toLocaleDateString()+' '+end.toLocaleTimeString()+'</td></tr>'+
+      '<tr><td>Duration</td><td>'+sched.duration+' minutes</td></tr>'+
+      '<tr><td>Max Attempts</td><td>'+sched.maxAttempts+'</td></tr>'+
+      (sched.passMark?'<tr><td>Pass Mark</td><td>'+sched.passMark+'%</td></tr>':'')+
+      (sched.instructions?'<tr><td>Instructions</td><td>'+esc(sched.instructions)+'</td></tr>':'')+
+      '</table>';
+
+    renderPicker();
+    showMsg('Schedule saved for "'+q.title+'"!','success');
+  }
+
+  function clearSchedule(){
+    if(selectedIdx<0) return;
+    var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    if(!quizzes[selectedIdx]) return;
+    var name=quizzes[selectedIdx].title;
+    quizzes[selectedIdx].schedule=null;
+    localStorage.setItem('qc_quizzes',JSON.stringify(quizzes));
+    document.getElementById('currentSchedBanner').style.display='none';
+    document.getElementById('schedDate').value='';
+    document.getElementById('schedTime').value='';
+    document.getElementById('schedDur').value='';
+    document.getElementById('schedPass').value='';
+    document.getElementById('btnSaveSched').disabled=true;
+    renderPicker();
+    showMsg('Schedule removed for "'+name+'".','success');
+  }
+
+  function editSched(){
+    document.getElementById('confirmCard').style.display='none';
+    showSchedForm();
+  }
+
+  function showMsg(txt,type){
+    var d=document.getElementById('gMsg');
+    d.className=type==='success'?'msg-success':'msg-error';
+    d.textContent=txt; d.style.display='block';
+    clearTimeout(window._mt); window._mt=setTimeout(function(){d.style.display='none';},5000);
+  }
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  init();
+</script>
+</body>
+</html>

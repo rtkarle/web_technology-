@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizCraft – Dashboard</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#333;}
+
+    /* NAV */
+    .navbar{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;
+      position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    .nav-brand{font-size:20px;font-weight:700;letter-spacing:1px;}
+    .nav-brand small{font-size:11px;font-weight:400;opacity:.8;display:block;}
+    .nav-links a{color:rgba(255,255,255,.85);text-decoration:none;padding:6px 14px;
+      border-radius:6px;font-size:14px;font-weight:500;margin:0 2px;}
+    .nav-links a:hover,.nav-links a.active{background:rgba(255,255,255,.2);color:#fff;}
+    .btn-nav{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);
+      color:#fff;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;
+      font-weight:600;text-decoration:none;}
+    .btn-nav:hover{background:rgba(255,255,255,.28);}
+
+    /* PAGE */
+    .page{max-width:1100px;margin:28px auto;padding:0 20px;}
+    .page-title{font-size:24px;font-weight:700;margin-bottom:4px;}
+    .page-sub{color:#888;font-size:13px;margin-bottom:20px;}
+
+    /* CARDS */
+    .card{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);
+      padding:24px 28px;margin-bottom:24px;}
+
+    /* STATS */
+    .stats{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+    .stat{background:#fff;border-radius:10px;padding:16px 22px;flex:1;min-width:130px;
+      box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;}
+    .stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;
+      justify-content:center;font-size:22px;}
+    .ic-purple{background:#ede9fe;} .ic-blue{background:#dbeafe;}
+    .ic-green{background:#dcfce7;} .ic-orange{background:#fff7ed;}
+    .stat-val{font-size:22px;font-weight:800;}
+    .stat-lbl{font-size:12px;color:#888;}
+
+    /* MSG */
+    .msg-success{background:#f0fdf4;border:1.5px solid #86efac;color:#166534;
+      padding:12px 18px;border-radius:8px;margin-bottom:18px;font-weight:600;}
+    .msg-error{background:#fff0f0;border:1.5px solid #fca5a5;color:#991b1b;
+      padding:12px 18px;border-radius:8px;margin-bottom:18px;font-weight:600;}
+
+    /* TABLE */
+    .tbl-wrap{overflow-x:auto;}
+    table.data{width:100%;border-collapse:collapse;font-size:14px;}
+    table.data thead tr{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+    table.data thead th{padding:12px 14px;text-align:left;font-weight:600;font-size:13px;}
+    table.data thead th:first-child{border-radius:8px 0 0 0;}
+    table.data thead th:last-child{border-radius:0 8px 0 0;}
+    table.data tbody tr{border-bottom:1px solid #f0f2f5;transition:background .15s;}
+    table.data tbody tr:hover{background:#f7f8fc;}
+    table.data tbody td{padding:12px 14px;vertical-align:middle;}
+
+    /* BADGES */
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .badge-draft    {background:#f1f5f9;color:#475569;}
+    .badge-upcoming {background:#dbeafe;color:#1d4ed8;}
+    .badge-live     {background:#dcfce7;color:#166534;}
+    .badge-ended    {background:#fee2e2;color:#991b1b;}
+    .badge-open     {background:#ede9fe;color:#7c3aed;}
+
+    /* BUTTONS */
+    .btn{padding:7px 16px;border-radius:7px;border:none;cursor:pointer;font-size:13px;
+      font-weight:600;font-family:inherit;transition:all .18s;display:inline-flex;
+      align-items:center;gap:5px;text-decoration:none;}
+    .btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;
+      box-shadow:0 2px 8px rgba(102,126,234,.3);}
+    .btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+    .btn-warning{background:#fff7ed;color:#c2410c;border:1.5px solid #fed7aa;}
+    .btn-warning:hover{background:#ffeedd;}
+    .btn-info   {background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;}
+    .btn-info:hover{background:#dbeafe;}
+    .btn-success{background:#f0fdf4;color:#166534;border:1.5px solid #86efac;}
+    .btn-success:hover{background:#dcfce7;}
+    .btn-danger {background:#fff0f0;color:#dc2626;border:1.5px solid #fca5a5;}
+    .btn-danger:hover{background:#fee2e2;}
+    .btn-gap{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:44px 20px;color:#aaa;}
+    .empty-icon{font-size:48px;margin-bottom:12px;}
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand">&#9998; QuizCraft <small>Online Quiz Platform</small></div>
+  <div class="nav-links">
+    <a href="index.html" class="active">&#127968; Dashboard</a>
+    <a href="create-quiz.html">&#128221; Create Quiz</a>
+    <a href="take-quiz.html">&#9654; Take Quiz</a>
+  </div>
+  <a href="create-quiz.html" class="btn-nav">+ New Quiz</a>
+</nav>
+
+<div class="page">
+  <div class="page-title">&#127968; Dashboard</div>
+  <div class="page-sub">Manage all your quizzes — create, schedule and publish.</div>
+
+  <!-- MSG -->
+  <div id="dashMsg" style="display:none;"></div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-icon ic-purple">&#127979;</div>
+      <div><div class="stat-val" id="statTotal">0</div><div class="stat-lbl">Total Quizzes</div></div></div>
+    <div class="stat"><div class="stat-icon ic-green">&#9989;</div>
+      <div><div class="stat-val" id="statLive">0</div><div class="stat-lbl">Live Now</div></div></div>
+    <div class="stat"><div class="stat-icon ic-blue">&#128197;</div>
+      <div><div class="stat-val" id="statUpcoming">0</div><div class="stat-lbl">Upcoming</div></div></div>
+    <div class="stat"><div class="stat-icon ic-orange">&#10067;</div>
+      <div><div class="stat-val" id="statQ">0</div><div class="stat-lbl">Total Questions</div></div></div>
+  </div>
+
+  <!-- QUIZ TABLE -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <strong style="font-size:16px;">&#128218; My Quizzes</strong>
+      <a href="create-quiz.html" class="btn btn-primary">+ Create New Quiz</a>
+    </div>
+
+    <div id="noQuizMsg" class="empty" style="display:none;">
+      <div class="empty-icon">&#128218;</div>
+      <p>No quizzes yet. <a href="create-quiz.html">Create your first quiz</a>.</p>
+    </div>
+
+    <div class="tbl-wrap" id="quizTableWrap" style="display:none;">
+      <table class="data">
+        <thead>
+          <tr>
+            <th>#</th><th>Quiz Title</th><th>Subject</th><th>Difficulty</th>
+            <th>Questions</th><th>Total Marks</th><th>Scheduled</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="quizTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  function loadDashboard(){
+    var quizzes = JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    var tbody   = document.getElementById('quizTableBody');
+    var wrap    = document.getElementById('quizTableWrap');
+    var noMsg   = document.getElementById('noQuizMsg');
+    tbody.innerHTML = '';
+
+    var totalQ=0, live=0, upcoming=0;
+    quizzes.forEach(function(q){ totalQ += q.questions.length; });
+
+    document.getElementById('statTotal').textContent    = quizzes.length;
+    document.getElementById('statQ').textContent        = totalQ;
+
+    if(quizzes.length===0){ wrap.style.display='none'; noMsg.style.display='block';
+      document.getElementById('statLive').textContent='0';
+      document.getElementById('statUpcoming').textContent='0'; return; }
+    wrap.style.display=''; noMsg.style.display='none';
+
+    var now = new Date();
+    for(var i=0;i<quizzes.length;i++){
+      var q=quizzes[i];
+      var totalMarks=0; q.questions.forEach(function(qu){totalMarks+=qu.marks;});
+
+      var schedText='—'; var status='Draft'; var badgeCls='badge-draft';
+      if(q.schedule && q.schedule.startDate){
+        var start=new Date(q.schedule.startDate+'T'+q.schedule.startTime);
+        var end  =new Date(start.getTime()+q.schedule.duration*60000);
+        schedText=q.schedule.startDate+' '+q.schedule.startTime;
+        if(now<start){status='Upcoming';badgeCls='badge-upcoming';upcoming++;}
+        else if(now<=end){status='Live Now';badgeCls='badge-live';live++;}
+        else{status='Ended';badgeCls='badge-ended';}
+      } else if(q.questions.length>0){status='Open';badgeCls='badge-open';}
+
+      var row=document.createElement('tr');
+      row.innerHTML=
+        '<td><strong>'+(i+1)+'</strong></td>'+
+        '<td><strong>'+esc(q.title)+'</strong></td>'+
+        '<td>'+esc(q.subject)+'</td>'+
+        '<td>'+esc(q.difficulty||'—')+'</td>'+
+        '<td>'+q.questions.length+'</td>'+
+        '<td>'+totalMarks+'</td>'+
+        '<td>'+esc(schedText)+'</td>'+
+        '<td><span class="badge '+badgeCls+'">'+status+'</span></td>'+
+        '<td><div class="btn-gap">'+
+          '<button class="btn btn-warning" onclick="editQuiz('+i+')">&#9998; Edit</button>'+
+          '<button class="btn btn-info" onclick="scheduleQuiz('+i+')">&#128197; Schedule</button>'+
+          '<button class="btn btn-success" onclick="takeQuiz('+i+')">&#9654; Take</button>'+
+          '<button class="btn btn-danger" onclick="deleteQuiz('+i+')">&#128465;</button>'+
+        '</div></td>';
+      tbody.appendChild(row);
+    }
+    document.getElementById('statLive').textContent    = live;
+    document.getElementById('statUpcoming').textContent= upcoming;
+  }
+
+  function editQuiz(i){localStorage.setItem('qc_edit_index',i);location.href='create-quiz.html';}
+  function scheduleQuiz(i){localStorage.setItem('qc_schedule_index',i);location.href='schedule-quiz.html';}
+  function takeQuiz(i){
+    var q=JSON.parse(localStorage.getItem('qc_quizzes')||'[]')[i];
+    if(!q||q.questions.length===0){showMsg('This quiz has no questions. Edit it first.','error');return;}
+    localStorage.setItem('qc_take_index',i);location.href='take-quiz.html';
+  }
+  function deleteQuiz(i){
+    var quizzes=JSON.parse(localStorage.getItem('qc_quizzes')||'[]');
+    var name=quizzes[i].title; quizzes.splice(i,1);
+    localStorage.setItem('qc_quizzes',JSON.stringify(quizzes));
+    showMsg('Quiz "'+name+'" deleted.','success'); loadDashboard();
+  }
+  function showMsg(txt,type){
+    var d=document.getElementById('dashMsg');
+    d.className=type==='success'?'msg-success':'msg-error';
+    d.textContent=txt; d.style.display='block';
+    clearTimeout(window._mt);window._mt=setTimeout(function(){d.style.display='none';},4000);
+  }
+
+  // Message from other pages
+  var m=localStorage.getItem('dashMsg');
+  if(m){showMsg(m,'success');localStorage.removeItem('dashMsg');}
+  loadDashboard();
+</script>
+</body>
+</html>
